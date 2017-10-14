@@ -14,7 +14,6 @@ namespace Hodlr.Pages
         private Label fiatValueLabel;
         private Label profitLabel;
         private Picker fiatPicker;
-        private ScrollView scroller;
         private bool loaded = false;
         private ListView listView;
         private double width = 0;
@@ -62,22 +61,19 @@ namespace Hodlr.Pages
             };
             fiatPicker.SelectedIndexChanged += FiatPicker_SelectedIndexChanged;
 
-            scroller = new ScrollView
+            Button addButton = new Button { Text = "Add Transaction" };
+            addButton.Clicked += (a,b)=>{ Navigation.PushAsync(new AddTransactionPage()); };
+
+            listView = new ListView
             {
                 VerticalOptions = LayoutOptions.Fill,
                 HorizontalOptions = LayoutOptions.Fill
             };
-
-            Button addButton = new Button { Text = "Add Transaction" };
-            addButton.Clicked += (a,b)=>{ Navigation.PushAsync(new AddTransactionPage()); };
-
-            listView = new ListView();
             listView.ItemsSource = WrappedItems;
             listView.HasUnevenRows = true;
             listView.VerticalOptions = LayoutOptions.FillAndExpand;
             listView.ItemTemplate = new DataTemplate(typeof(TransactionCell));
             listView.ItemSelected += ListView_ItemSelected;
-            scroller.Content = listView;
 
             StackLayout profitSection = new StackLayout
             {
@@ -107,7 +103,7 @@ namespace Hodlr.Pages
                         Text = "Transactions:",
                         HorizontalOptions = LayoutOptions.Center
                     },
-                    scroller,
+                    listView,
                     addButton
                 }
             };

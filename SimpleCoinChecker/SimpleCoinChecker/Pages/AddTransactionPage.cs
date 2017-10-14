@@ -129,17 +129,22 @@ namespace Hodlr.Pages
             }
             else
             {
+                if (!Double.TryParse(fiatAmountEntry.Text, out double fiatAmount)) fiatAmount = 0;
+
                 btcAmountEntry.Text = AppUtils.GetBtcValOfFiat(fiatPicker.SelectedItem.ToString(),
-                    Double.Parse(fiatAmountEntry.Text)).ToString();
+                    fiatAmount).ToString();
             }
         }
 
         private void SubmitButton_Clicked(object sender, EventArgs e)
         {
+            if (!Double.TryParse(fiatAmountEntry.Text, out double fiatAmount)) fiatAmount = 0;
+            if (!Double.TryParse(btcAmountEntry.Text, out double btcAmount)) btcAmount = 0;
+
             App.db.AddOrUpdateTransaction(new Transaction
             {
-                BtcAmount = Double.Parse(btcAmountEntry.Text),
-                FiatValue = Double.Parse(fiatAmountEntry.Text),
+                BtcAmount = btcAmount,
+                FiatValue = fiatAmount,
                 FiatCurrency = fiatPicker.SelectedItem.ToString(),
                 CreatedAt = datePicker.Date,
                 AcquireBtc = typeSwitch.IsToggled
