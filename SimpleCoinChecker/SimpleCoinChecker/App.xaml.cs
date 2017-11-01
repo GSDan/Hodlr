@@ -10,9 +10,15 @@ namespace Hodlr
     {
         public static DateTime lastConvertRefresh;
         public static DatabaseManager db;
-        public static Dictionary<string, FiatValue> FiatValues;
         public static FiatConvert FiatConvert;
         public static string FiatPref = "USD";
+        public static int SourcePrefIndex = 0;
+        public static double UsdToBtc = 5792.57;
+        public const string BlockchainName = "Blockchain.info";
+        public const string CoindeskName = "Coindesk";
+        public const string CoinbaseName = "Coinbase";
+        public static string[] PriceSources = new string[] { BlockchainName, CoinbaseName, CoindeskName };
+
 
         public App()
         {
@@ -24,8 +30,9 @@ namespace Hodlr
             {
                 if(!string.IsNullOrWhiteSpace(cache.FiatPref)) FiatPref = cache.FiatPref;
                 lastConvertRefresh = cache.LastConvertRefresh;
-                FiatValues = JsonConvert.DeserializeObject<Dictionary<string, FiatValue>>(cache.ValueDataJson);
+                UsdToBtc = cache.UsdToBtc;
                 FiatConvert = JsonConvert.DeserializeObject<FiatConvert>(cache.ConvertDataJson);
+                SourcePrefIndex = cache.SourcePref;
             }
 
             MainPage = new NavigationPage(new Pages.MainPage());

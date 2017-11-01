@@ -26,7 +26,7 @@ namespace Hodlr.Pages
             {
                 Title = "Choose currency"
             };
-            fiatPicker.ItemsSource = App.FiatValues.Keys.OrderBy(k => k).ToList();
+            fiatPicker.ItemsSource = AppUtils.GetCurrencies();
             fiatPicker.SelectedItem = App.FiatPref;
             fiatPicker.SelectedIndexChanged += FiatPicker_SelectedIndexChanged;
 

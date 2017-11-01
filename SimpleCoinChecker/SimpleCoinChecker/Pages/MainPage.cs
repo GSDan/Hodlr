@@ -14,6 +14,7 @@ namespace Hodlr.Pages
         private Label fiatValueLabel;
         private Label profitLabel;
         private Picker fiatPicker;
+        private Picker sourcePicker;
         private bool loaded = false;
         private ListView listView;
         private double width = 0;
@@ -57,9 +58,28 @@ namespace Hodlr.Pages
             fiatPicker = new Picker
             {
                 Title = "Choose Fiat Currency",
-                HorizontalOptions = LayoutOptions.Center
+                HorizontalOptions = LayoutOptions.CenterAndExpand
             };
             fiatPicker.SelectedIndexChanged += FiatPicker_SelectedIndexChanged;
+
+            sourcePicker = new Picker
+            {
+                Title = "Choose price source",
+                HorizontalOptions = LayoutOptions.CenterAndExpand
+            };
+            sourcePicker.ItemsSource = App.PriceSources;
+            sourcePicker.SelectedIndexChanged += SourcePicker_SelectedIndexChanged;
+
+            StackLayout pickerLayout = new StackLayout
+            {
+                Orientation = StackOrientation.Horizontal,
+                Spacing = 10,
+                Children =
+                {
+                    fiatPicker,
+                    sourcePicker
+                }
+            };
 
             Button addButton = new Button { Text = "Add Transaction" };
             addButton.Clicked += (a,b)=>{ Navigation.PushAsync(new AddTransactionPage()); };
@@ -85,7 +105,7 @@ namespace Hodlr.Pages
                     userValueLabel,
                     profitLabel,
                     fiatValueLabel,
-                    fiatPicker
+                    pickerLayout
                 }
             };
 
@@ -144,12 +164,12 @@ namespace Hodlr.Pages
             while(!loaded)
             {
                 UserDialogs.Instance.ShowLoading(title: "Getting Data");
-                bool success = await AppUtils.RefreshVals();
+                bool success = await AppUtils.RefreshVals(App.PriceSources[App.SourcePrefIndex]);
                 UserDialogs.Instance.HideLoading();
 
-                if (!success || App.FiatConvert == null || App.FiatValues == null)
+                if (!success || App.FiatConvert == null)
                 {
-                    bool existingData = App.FiatConvert != null && App.FiatValues != null;
+                    bool existingData = App.FiatConvert != null;
 
                     if (existingData)
                     {
@@ -165,11 +185,8 @@ namespace Hodlr.Pages
                 loaded = true;
             }
 
-            if(App.FiatValues != null)
-            {
-                SetupPicker();
-                LoadTransactions();
-            }
+            SetupPicker();
+            LoadTransactions();
         }
 
         protected override void OnAppearing()
@@ -195,16 +212,15 @@ namespace Hodlr.Pages
             }
             else
             {
-                var copy = new ObservableCollection<WrappedCell<Transaction>>(WrappedItems);
-                var toRemove = copy.Where(wc => !transactions.Any(t => t.Id == wc.Item.Id)).ToList();
-                var toAdd = transactions.Where(t => !copy.Any(wc => wc.Item.Id == t.Id));
-
-                foreach (var rem in toRemove) WrappedItems.Remove(rem);
-                foreach (var add in toAdd) WrappedItems.Add(new WrappedCell<Transaction>()
+                WrappedItems.Clear();
+                foreach(var tr in transactions)
                 {
-                    Item = add,
-                    IsSelected = false
-                });
+                    WrappedItems.Add(new WrappedCell<Transaction>()
+                    {
+                        Item = tr,
+                        IsSelected = false
+                    });
+                }
             }
             
             UpdateLabels();
@@ -233,13 +249,17 @@ namespace Hodlr.Pages
                 current = fiatPicker.Items[fiatPicker.SelectedIndex];
             }
 
-            if(App.FiatValues != null)
+            List<string> currs = AppUtils.GetCurrencies();
+
+            if(currs != null)
             {
-                fiatPicker.ItemsSource = App.FiatValues.Keys.OrderBy(k => k).ToList();
+                fiatPicker.ItemsSource = currs;
             }
 
             current = (current != null)? current : App.FiatPref;
             fiatPicker.SelectedIndex = fiatPicker.Items.IndexOf(current);
+
+            sourcePicker.SelectedIndex = App.SourcePrefIndex;
         }
 
         private void FiatPicker_SelectedIndexChanged(object sender, EventArgs e)
@@ -252,11 +272,15 @@ namespace Hodlr.Pages
             UpdateLabels();
         }
 
+        private void SourcePicker_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            App.SourcePrefIndex = sourcePicker.SelectedIndex;
+            AppUtils.SaveCache();
+            GetVals();
+        }
+
         private void UpdateLabels()
         {
-            if (App.FiatValues == null) return;
-
-            FiatValue fiat = App.FiatValues[App.FiatPref];
             List<Transaction> transactions = App.db.GetTransactions().ToList();
             double totalBtc = 0;
             double totalFiat = 0;
@@ -277,15 +301,17 @@ namespace Hodlr.Pages
                 }
             }
             
-            double btcFiatVal = totalBtc * fiat.Delayed;
-            double profit = totalFiat + btcFiatVal;
+            double btcUsdVal = AppUtils.GetFiatValOfBtc(App.FiatPref, totalBtc);
+            double profit = totalFiat + btcUsdVal;
 
-            fiatValueLabel.Text = string.Format("{0:0.00000000} BTC at {1}{2:0.00} per coin", totalBtc, fiat.Symbol, fiat.Delayed);
-            userValueLabel.Text = string.Format("{0}{1:0.00}", fiat.Symbol, btcFiatVal);
+            fiatValueLabel.Text = string.Format("{0:0.00000000} BTC at {1:0.00} {2} per coin", totalBtc,
+                AppUtils.ConvertFiat("USD", App.FiatPref, App.UsdToBtc),
+                App.FiatPref);
+            userValueLabel.Text = string.Format("{0:0.00} {1}", btcUsdVal, App.FiatPref);
 
             string profLoss = (profit >= 0) ? "Profit" : "Loss";
             profitLabel.TextColor = (profit >= 0) ? Color.ForestGreen : Color.IndianRed;
-            profitLabel.Text = string.Format("{0}: {1}{2:0.00}", profLoss, fiat.Symbol, Math.Abs(profit));
+            profitLabel.Text = string.Format("{0}: {1:0.00} {2}", profLoss, Math.Abs(profit), App.FiatPref);
         }
     }
 }

@@ -2,6 +2,7 @@
 using RestSharp.Portable;
 using RestSharp.Portable.HttpClient;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Hodlr
@@ -16,6 +17,11 @@ namespace Hodlr
     public static class Comms
     {
         public static string BlockChainApi = "https://blockchain.info/";
+        public static string BlockChainPriceRoute = "ticker";
+        public static string CoindeskApi = "https://api.coindesk.com/v1/bpi/";
+        public static string CoinDeskPriceRoute = "currentprice.json";
+        public static string CoinbaseApi = "https://api.coinbase.com/v2/";
+        public static string CoinbasePriceRoute = "prices/spot?currency=USD";
         public static string ConverterApi = "http://api.fixer.io/";
 
         public static async Task<ServerResponse<T>> Get<T>(string apiBase, string route)

@@ -77,12 +77,12 @@ namespace Hodlr
             var c = (WrappedCell<Transaction>)BindingContext;
             if (c == null || c.Item == null) return;
 
-            FiatAmountLabel.Text = string.Format("{0}{1:0.00}",
-                App.FiatValues[c.Item.FiatCurrency].Symbol, c.Item.FiatValue);
+            FiatAmountLabel.Text = string.Format("{0:0.00} {1}",
+                c.Item.FiatValue, c.Item.FiatCurrency);
 
-            CurrentAmountLabel.Text = string.Format("{0}{1:0.00}",
-                App.FiatValues[c.Item.FiatCurrency].Symbol,
-                AppUtils.GetFiatValOfBtc(c.Item.FiatCurrency, c.Item.BtcAmount));
+            CurrentAmountLabel.Text = string.Format("{0:0.00} {1}",
+                AppUtils.GetFiatValOfBtc(c.Item.FiatCurrency, c.Item.BtcAmount),
+                c.Item.FiatCurrency);
 
             BtcAmountLabel.Text = string.Format("{0} {1:0.0000000} BTC", 
                 (c.Item.AcquireBtc)? "Bought" : "Sold",

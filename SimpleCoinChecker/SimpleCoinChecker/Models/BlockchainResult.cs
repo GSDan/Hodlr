@@ -2,7 +2,7 @@
 
 namespace Hodlr.Models
 {
-    public class FiatValue
+    public class BlockchainResult
     {
         [JsonProperty("15m")]
         public double Delayed { get; set; }

@@ -9,12 +9,32 @@ namespace Hodlr
 {
     public static class AppUtils
     {
-        public static async Task<bool> RefreshVals()
+        public static async Task<double> GetCurrentUsdtoBtc(string priceSource)
         {
-            var btcResp = await Comms.Get<Dictionary<string, FiatValue>>(Comms.BlockChainApi, "ticker");
+            switch(priceSource)
+            {
+                case App.BlockchainName:
+                    var btcResp = await Comms.Get<Dictionary<string, BlockchainResult>>(Comms.BlockChainApi, Comms.BlockChainPriceRoute);
+                    if (btcResp.Success) return btcResp.Data["USD"].Delayed;
+                    break;
+                case App.CoindeskName:
+                    var deskResp = await Comms.Get<CoindeskResult>(Comms.CoindeskApi, Comms.CoinDeskPriceRoute);
+                    if (deskResp.Success) return deskResp.Data.Bpi["USD"].Rate_float;
+                    break;
+                case App.CoinbaseName:
+                    var cbResp = await Comms.Get<CoinbaseResult>(Comms.CoinbaseApi, Comms.CoinbasePriceRoute);
+                    if (cbResp.Success) return cbResp.Data.Data.Amount;
+                    break;
+            }             
+            return -1;
+        }
+
+        public static async Task<bool> RefreshVals(string source = App.BlockchainName)
+        {
+            double returnedUsdtoBtc = await GetCurrentUsdtoBtc(source);
             FiatConvert convert = App.FiatConvert;
 
-            if (btcResp.Success && btcResp.Data != null)
+            if (returnedUsdtoBtc != -1)
             {
                 if (convert == null || 
                     App.lastConvertRefresh == null || 
@@ -29,23 +49,13 @@ namespace Hodlr
                 }
                 if (convert != null)
                 {
-                    // Only use the currencies available from both APIs
-                    var commonFiat = btcResp.Data.Keys.Intersect(convert.Rates.Keys).ToList();
-                    commonFiat.Add("USD");
-
-                    App.FiatValues = btcResp.Data
-                         .Where(kvp => commonFiat.Contains(kvp.Key))
-                         .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-
+                    App.UsdToBtc = returnedUsdtoBtc;
                     App.FiatConvert = convert;
-                    App.FiatConvert.Rates = App.FiatConvert.Rates
-                         .Where(kvp => commonFiat.Contains(kvp.Key))
-                         .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
                     SaveCache();
                 }
             }
-            return btcResp.Success && convert != null;
+            return (returnedUsdtoBtc != -1) && (convert != null);
         }
 
         public static void SaveCache()
@@ -55,20 +65,30 @@ namespace Hodlr
                 LastConvertRefresh = App.lastConvertRefresh,
                 FiatPref = App.FiatPref,
                 ConvertDataJson = JsonConvert.SerializeObject(App.FiatConvert),
-                ValueDataJson = JsonConvert.SerializeObject(App.FiatValues)
+                UsdToBtc = App.UsdToBtc
             });
+        }
+
+        public static List<string> GetCurrencies()
+        {
+            if (App.FiatConvert?.Rates == null) return null;
+
+            List<string> currs = App.FiatConvert.Rates.Keys.ToList();
+            currs.Add("USD");
+            currs.Sort();
+            return currs;
         }
 
         public static double GetFiatValOfBtc(string currency, double btcAmount)
         {
-            FiatValue fiat = App.FiatValues[currency];
-            return  btcAmount * fiat.Delayed;            
+            double inUsd = btcAmount * App.UsdToBtc;
+            return  ConvertFiat("USD", currency, inUsd);            
         }
 
         public static double GetBtcValOfFiat(string currency, double fiatAmount)
         {
-            FiatValue fiat = App.FiatValues[currency];
-            return fiatAmount / fiat.Delayed;
+            double inUsd = ConvertFiat(currency, "USD", fiatAmount);
+            return inUsd / App.UsdToBtc;
         }
 
         public static double ConvertFiat(string lhs, string rhs, double amount)
