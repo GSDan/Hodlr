@@ -25,6 +25,10 @@ namespace Hodlr
                     var cbResp = await Comms.Get<CoinbaseResult>(Comms.CoinbaseApi, Comms.CoinbasePriceRoute);
                     if (cbResp.Success) return cbResp.Data.Data.Amount;
                     break;
+                case App.GDAXName:
+                    var gdaxResp = await Comms.Get<GDAXResult>(Comms.GdaxApi, Comms.GdaxPriceRoute);
+                    if (gdaxResp.Success) return gdaxResp.Data.Price;
+                    break;
             }             
             return -1;
         }
@@ -65,7 +69,8 @@ namespace Hodlr
                 LastConvertRefresh = App.lastConvertRefresh,
                 FiatPref = App.FiatPref,
                 ConvertDataJson = JsonConvert.SerializeObject(App.FiatConvert),
-                UsdToBtc = App.UsdToBtc
+                UsdToBtc = App.UsdToBtc,
+                SourcePref = App.SourcePrefIndex
             });
         }
 

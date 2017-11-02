@@ -22,6 +22,8 @@ namespace Hodlr
         public static string CoinDeskPriceRoute = "currentprice.json";
         public static string CoinbaseApi = "https://api.coinbase.com/v2/";
         public static string CoinbasePriceRoute = "prices/spot?currency=USD";
+        public static string GdaxApi = "https://api.gdax.com/";
+        public static string GdaxPriceRoute = "products/BTC-USD/ticker";
         public static string ConverterApi = "http://api.fixer.io/";
 
         public static async Task<ServerResponse<T>> Get<T>(string apiBase, string route)

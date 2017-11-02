@@ -14,11 +14,11 @@ namespace Hodlr
         public static string FiatPref = "USD";
         public static int SourcePrefIndex = 0;
         public static double UsdToBtc = 5792.57;
+        public const string GDAXName = "GDAX";
         public const string BlockchainName = "Blockchain.info";
         public const string CoindeskName = "Coindesk";
         public const string CoinbaseName = "Coinbase";
-        public static string[] PriceSources = new string[] { BlockchainName, CoinbaseName, CoindeskName };
-
+        public static string[] PriceSources = new string[] { GDAXName, BlockchainName, CoinbaseName, CoindeskName };
 
         public App()
         {
