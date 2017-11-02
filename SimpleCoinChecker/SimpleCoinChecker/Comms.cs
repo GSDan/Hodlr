@@ -24,6 +24,8 @@ namespace Hodlr
         public static string CoinbasePriceRoute = "prices/spot?currency=USD";
         public static string GdaxApi = "https://api.gdax.com/";
         public static string GdaxPriceRoute = "products/BTC-USD/ticker";
+        public static string CryptoCompareApi = "https://min-api.cryptocompare.com/";
+        public static string CryptoCompareRoute = "data/price?fsym=BTC&tsyms=USD";
         public static string ConverterApi = "http://api.fixer.io/";
 
         public static async Task<ServerResponse<T>> Get<T>(string apiBase, string route)

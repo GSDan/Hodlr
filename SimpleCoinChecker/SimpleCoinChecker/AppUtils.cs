@@ -32,6 +32,10 @@ namespace Hodlr
                     var gdaxResp = await Comms.Get<GDAXResult>(Comms.GdaxApi, Comms.GdaxPriceRoute);
                     if (gdaxResp.Success) return gdaxResp.Data.Price;
                     break;
+                case App.CryptoCompareName:
+                    var compResp = await Comms.Get<CryptoCompareResult>(Comms.CryptoCompareApi, Comms.CryptoCompareRoute);
+                    if (compResp.Success) return compResp.Data.USD;
+                    break;
             }             
             return -1;
         }

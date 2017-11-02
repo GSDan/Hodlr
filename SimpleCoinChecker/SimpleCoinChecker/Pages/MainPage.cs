@@ -58,7 +58,7 @@ namespace Hodlr.Pages
             fiatPicker = new Picker
             {
                 Title = "Choose Fiat Currency",
-                HorizontalOptions = LayoutOptions.CenterAndExpand
+                HorizontalOptions = LayoutOptions.Start
             };
             fiatPicker.SelectedIndexChanged += FiatPicker_SelectedIndexChanged;
 
@@ -315,7 +315,7 @@ namespace Hodlr.Pages
 
             profitLabel.TextColor = (profit >= 0) ? Color.ForestGreen : Color.IndianRed;
 
-            double percentChange = profit / totalFiat * 100;
+            double percentChange = (totalFiat != 0)? profit / totalFiat * 100 : 0;
 
             profitLabel.Text = string.Format("{0}: {1} ({2}{3:0.0}%)", 
                 profLoss,
