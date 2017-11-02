@@ -77,10 +77,9 @@ namespace Hodlr
             var c = (WrappedCell<Transaction>)BindingContext;
             if (c == null || c.Item == null) return;
 
-            FiatAmountLabel.Text = string.Format("{0:0.00} {1}",
-                c.Item.FiatValue, c.Item.FiatCurrency);
+            FiatAmountLabel.Text = AppUtils.GetMoneyString(c.Item.FiatValue, c.Item.FiatCurrency);
 
-            CurrentAmountLabel.Text = string.Format("{0:0.00} {1}",
+            CurrentAmountLabel.Text = AppUtils.GetMoneyString(
                 AppUtils.GetFiatValOfBtc(c.Item.FiatCurrency, c.Item.BtcAmount),
                 c.Item.FiatCurrency);
 

@@ -41,6 +41,7 @@
     <Compile Include="AppUtils.cs" />
     <Compile Include="Comms.cs" />
     <Compile Include="DatabaseManager.cs" />
+    <Compile Include="Interfaces\ICurrencySymbolManager.cs" />
     <Compile Include="Interfaces\ISQLite.cs" />
     <Compile Include="Models\AppCache.cs" />
     <Compile Include="Models\CoinbaseResult.cs" />

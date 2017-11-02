@@ -304,14 +304,24 @@ namespace Hodlr.Pages
             double btcUsdVal = AppUtils.GetFiatValOfBtc(App.FiatPref, totalBtc);
             double profit = totalFiat + btcUsdVal;
 
-            fiatValueLabel.Text = string.Format("{0:0.00000000} BTC at {1:0.00} {2} per coin", totalBtc,
-                AppUtils.ConvertFiat("USD", App.FiatPref, App.UsdToBtc),
-                App.FiatPref);
-            userValueLabel.Text = string.Format("{0:0.00} {1}", btcUsdVal, App.FiatPref);
+            fiatValueLabel.Text = string.Format("{0:0.00000000} BTC at {1} per coin",
+                totalBtc,
+                AppUtils.GetMoneyString(AppUtils.ConvertFiat("USD", App.FiatPref, App.UsdToBtc), App.FiatPref));
+
+            userValueLabel.Text = AppUtils.GetMoneyString(btcUsdVal, App.FiatPref);
 
             string profLoss = (profit >= 0) ? "Profit" : "Loss";
+            string plusMinus = (profit >= 0) ? "+" : "-";
+
             profitLabel.TextColor = (profit >= 0) ? Color.ForestGreen : Color.IndianRed;
-            profitLabel.Text = string.Format("{0}: {1:0.00} {2}", profLoss, Math.Abs(profit), App.FiatPref);
+
+            double percentChange = profit / totalFiat * 100;
+
+            profitLabel.Text = string.Format("{0}: {1} ({2}{3:0.0}%)", 
+                profLoss,
+                AppUtils.GetMoneyString(Math.Abs(profit), App.FiatPref),
+                plusMinus, 
+                Math.Abs(percentChange));
         }
     }
 }

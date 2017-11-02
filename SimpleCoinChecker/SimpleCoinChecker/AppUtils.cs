@@ -4,6 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Globalization;
+using Hodlr.Interfaces;
+using Xamarin.Forms;
 
 namespace Hodlr
 {
@@ -108,6 +111,16 @@ namespace Hodlr
             double convertedVal = (rhs == "USD") ? usdVal : usdVal * App.FiatConvert.Rates[rhs];
 
             return convertedVal;
+        }  
+
+        public static string GetMoneyString(double amount, string currencyCode)
+        {
+            RegionInfo region = DependencyService.Get<ICurrencySymbolManager>().GetRegion(currencyCode);
+            CultureInfo culture = DependencyService.Get<ICurrencySymbolManager>().GetCulture(region.Name);
+
+            var formattedAmount = String.Format(culture, "{0:C}", amount);
+            return (formattedAmount);
         }
+
     }
 }
