@@ -106,6 +106,11 @@ namespace Hodlr.Droid
 
                 convert.UsdToBtc = await AppUtils.GetCurrentUsdtoBtc(AppUtils.PriceSources[cache.SourcePref]);
 
+                if (convert.UsdToBtc < 0)
+                {
+                    throw new Exception("Failed to refresh");
+                }
+
                 double totalBtc = 0;
                 double totalFiat = 0;
 
