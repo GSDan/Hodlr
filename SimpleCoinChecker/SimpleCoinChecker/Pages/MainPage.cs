@@ -15,7 +15,7 @@ namespace Hodlr.Pages
         private Label profitLabel;
         private Picker fiatPicker;
         private Picker sourcePicker;
-        private bool loaded = false;
+        private bool loaded;
         private ListView listView;
         private double width = 0;
         private double height = 0;
@@ -67,7 +67,7 @@ namespace Hodlr.Pages
                 Title = "Choose price source",
                 HorizontalOptions = LayoutOptions.CenterAndExpand
             };
-            sourcePicker.ItemsSource = App.PriceSources;
+            sourcePicker.ItemsSource = AppUtils.PriceSources;
             sourcePicker.SelectedIndexChanged += SourcePicker_SelectedIndexChanged;
 
             StackLayout pickerLayout = new StackLayout
@@ -164,12 +164,12 @@ namespace Hodlr.Pages
             while(!loaded)
             {
                 UserDialogs.Instance.ShowLoading(title: "Getting Data");
-                bool success = await AppUtils.RefreshVals(App.PriceSources[App.SourcePrefIndex]);
+                bool success = await AppUtils.RefreshVals(AppUtils.PriceSources[AppUtils.SourcePrefIndex]);
                 UserDialogs.Instance.HideLoading();
 
-                if (!success || App.FiatConvert == null)
+                if (!success || AppUtils.FiatConvert == null)
                 {
-                    bool existingData = App.FiatConvert != null;
+                    bool existingData = AppUtils.FiatConvert != null;
 
                     if (existingData)
                     {
@@ -200,7 +200,7 @@ namespace Hodlr.Pages
 
         private void LoadTransactions()
         {
-            var transactions = App.db.GetTransactions().ToList();
+            var transactions = App.DB.GetTransactions().ToList();
             if (WrappedItems == null)
             {
                 WrappedItems = new ObservableCollection<WrappedCell<Transaction>>
@@ -236,7 +236,7 @@ namespace Hodlr.Pages
             var answer = await DisplayAlert("Delete Transaction", "Do you want to delete this transaction?", "Yes", "No");
             if (answer)
             {
-                App.db.DeleteTransaction(chosen.Id);
+                App.DB.DeleteTransaction(chosen.Id);
                 LoadTransactions();
             }
         }
@@ -256,10 +256,10 @@ namespace Hodlr.Pages
                 fiatPicker.ItemsSource = currs;
             }
 
-            current = (current != null)? current : App.FiatPref;
+            current = (current != null)? current : AppUtils.FiatPref;
             fiatPicker.SelectedIndex = fiatPicker.Items.IndexOf(current);
 
-            sourcePicker.SelectedIndex = App.SourcePrefIndex;
+            sourcePicker.SelectedIndex = AppUtils.SourcePrefIndex;
         }
 
         private void FiatPicker_SelectedIndexChanged(object sender, EventArgs e)
@@ -267,27 +267,27 @@ namespace Hodlr.Pages
             if (fiatPicker.Items == null ||
                 fiatPicker.SelectedIndex == -1 ||
                 fiatPicker.SelectedIndex > fiatPicker.Items.Count) return;
-            App.FiatPref = fiatPicker.Items[fiatPicker.SelectedIndex];
+            AppUtils.FiatPref = fiatPicker.Items[fiatPicker.SelectedIndex];
             AppUtils.SaveCache();
             UpdateLabels();
         }
 
         private void SourcePicker_SelectedIndexChanged(object sender, EventArgs e)
         {
-            App.SourcePrefIndex = sourcePicker.SelectedIndex;
+            AppUtils.SourcePrefIndex = sourcePicker.SelectedIndex;
             AppUtils.SaveCache();
             GetVals();
         }
 
         private void UpdateLabels()
         {
-            List<Transaction> transactions = App.db.GetTransactions().ToList();
+            List<Transaction> transactions = App.DB.GetTransactions().ToList();
             double totalBtc = 0;
             double totalFiat = 0;
 
             foreach (var tr in transactions)
             {
-                double thisFiat = AppUtils.ConvertFiat(tr.FiatCurrency, App.FiatPref, tr.FiatValue);
+                double thisFiat = AppUtils.ConvertFiat(tr.FiatCurrency, AppUtils.FiatPref, tr.FiatValue);
 
                 if (tr.AcquireBtc)
                 {
@@ -301,14 +301,14 @@ namespace Hodlr.Pages
                 }
             }
             
-            double btcUsdVal = AppUtils.GetFiatValOfBtc(App.FiatPref, totalBtc);
+            double btcUsdVal = AppUtils.GetFiatValOfBtc(AppUtils.FiatPref, totalBtc);
             double profit = totalFiat + btcUsdVal;
 
             fiatValueLabel.Text = string.Format("{0:0.00000000} BTC at {1} per coin",
                 totalBtc,
-                AppUtils.GetMoneyString(AppUtils.ConvertFiat("USD", App.FiatPref, App.UsdToBtc), App.FiatPref));
+                AppUtils.GetMoneyString(AppUtils.ConvertFiat("USD", AppUtils.FiatPref, AppUtils.FiatConvert.UsdToBtc), AppUtils.FiatPref));
 
-            userValueLabel.Text = AppUtils.GetMoneyString(btcUsdVal, App.FiatPref);
+            userValueLabel.Text = AppUtils.GetMoneyString(btcUsdVal, AppUtils.FiatPref);
 
             string profLoss = (profit >= 0) ? "Profit" : "Loss";
             string plusMinus = (profit >= 0) ? "+" : "-";
@@ -319,7 +319,7 @@ namespace Hodlr.Pages
 
             profitLabel.Text = string.Format("{0}: {1} ({2}{3:0.0}%)", 
                 profLoss,
-                AppUtils.GetMoneyString(Math.Abs(profit), App.FiatPref),
+                AppUtils.GetMoneyString(Math.Abs(profit), AppUtils.FiatPref),
                 plusMinus, 
                 Math.Abs(percentChange));
         }

@@ -27,7 +27,7 @@ namespace Hodlr.Pages
                 Title = "Choose currency"
             };
             fiatPicker.ItemsSource = AppUtils.GetCurrencies();
-            fiatPicker.SelectedItem = App.FiatPref;
+            fiatPicker.SelectedItem = AppUtils.FiatPref;
             fiatPicker.SelectedIndexChanged += FiatPicker_SelectedIndexChanged;
 
             switchLabelVals.Add(true, "Purchasing Bitcoin");
@@ -141,7 +141,7 @@ namespace Hodlr.Pages
             if (!Double.TryParse(fiatAmountEntry.Text, out double fiatAmount)) fiatAmount = 0;
             if (!Double.TryParse(btcAmountEntry.Text, out double btcAmount)) btcAmount = 0;
 
-            App.db.AddOrUpdateTransaction(new Transaction
+            App.DB.AddOrUpdateTransaction(new Transaction
             {
                 BtcAmount = btcAmount,
                 FiatValue = fiatAmount,

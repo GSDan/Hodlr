@@ -1,41 +1,33 @@
-﻿using Newtonsoft.Json;
-using Hodlr.Models;
-using System.Collections.Generic;
-using Xamarin.Forms;
-using System;
+﻿using Xamarin.Forms;
 
 namespace Hodlr
 {
     public partial class App : Application
     {
-        public static DateTime lastConvertRefresh;
-        public static DatabaseManager db;
-        public static FiatConvert FiatConvert;
-        public static string FiatPref = "USD";
-        public static int SourcePrefIndex = 0;
-        public static double UsdToBtc = 5792.57;
-        public const string CryptoCompareName = "CryptoCompare";
-        public const string GDAXName = "GDAX";
-        public const string BlockchainName = "Blockchain.info";
-        public const string CoindeskName = "Coindesk";
-        public const string CoinbaseName = "Coinbase";
-        public static string[] PriceSources = new string[] { CryptoCompareName, GDAXName, BlockchainName, CoinbaseName, CoindeskName };
+        private static DatabaseManager db;
+        private static bool cacheLoaded;
+
+        public static DatabaseManager DB
+        {
+            get
+            {
+                if(db == null)
+                {
+                    db = new DatabaseManager();
+                }
+                if (!cacheLoaded)
+                {
+                    cacheLoaded = true;
+                    AppUtils.SetupCache();
+                }
+                return db;
+            }
+        }
 
         public App()
         {
             InitializeComponent();
-            db = new DatabaseManager();
-
-            AppCache cache = db.GetCache();
-            if (cache != null)
-            {
-                if(!string.IsNullOrWhiteSpace(cache.FiatPref)) FiatPref = cache.FiatPref;
-                lastConvertRefresh = cache.LastConvertRefresh;
-                UsdToBtc = cache.UsdToBtc;
-                FiatConvert = JsonConvert.DeserializeObject<FiatConvert>(cache.ConvertDataJson);
-                SourcePrefIndex = cache.SourcePref;
-            }
-
+            AppUtils.SetupCache();
             MainPage = new NavigationPage(new Pages.MainPage());
         }
 
