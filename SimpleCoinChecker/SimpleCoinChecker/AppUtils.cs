@@ -16,6 +16,7 @@ namespace Hodlr
         public static FiatConvert FiatConvert;
         public static string FiatPref = "USD";
         public static int SourcePrefIndex = 0;
+        public static int LastShownHint = 0;
 
         public const string CryptoCompareName = "CryptoCompare";
         public const string GDAXName = "GDAX";
@@ -89,6 +90,7 @@ namespace Hodlr
                 LastConvertRefresh = cache.LastConvertRefresh;
                 FiatConvert = JsonConvert.DeserializeObject<FiatConvert>(cache.ConvertDataJson);
                 SourcePrefIndex = cache.SourcePref;
+                LastShownHint = cache.LastShownHint;
             }
         }
 
@@ -99,7 +101,8 @@ namespace Hodlr
                 LastConvertRefresh = LastConvertRefresh,
                 FiatPref = FiatPref,
                 ConvertDataJson = JsonConvert.SerializeObject(FiatConvert),
-                SourcePref = SourcePrefIndex
+                SourcePref = SourcePrefIndex,
+                LastShownHint = LastShownHint
             });
         }
 

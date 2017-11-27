@@ -141,6 +141,18 @@ namespace Hodlr.Pages
             GetVals();
         }
 
+        private void ShowUpdateHint()
+        {
+            int thisHintNum = 1;
+
+            if(AppUtils.LastShownHint < thisHintNum)
+            {
+                DisplayAlert("NEW: Homescreen widget!", "Hodlr has been updated with a homescreen widget. Long press on your launcher's homescreen to add it.", "Sweet!");
+                AppUtils.LastShownHint = thisHintNum;
+                AppUtils.SaveCache();
+            }
+        }
+
         private void Refresh_Clicked(object sender, EventArgs e)
         {
             GetVals();
@@ -187,6 +199,7 @@ namespace Hodlr.Pages
 
             SetupPicker();
             LoadTransactions();
+            ShowUpdateHint();
         }
 
         protected override void OnAppearing()
