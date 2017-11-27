@@ -43,6 +43,7 @@
     <Compile Include="DatabaseManager.cs" />
     <Compile Include="Interfaces\ICurrencySymbolManager.cs" />
     <Compile Include="Interfaces\ISQLite.cs" />
+    <Compile Include="Interfaces\IWidgetManager.cs" />
     <Compile Include="Models\AppCache.cs" />
     <Compile Include="Models\CoinbaseResult.cs" />
     <Compile Include="Models\CoindeskResult.cs" />

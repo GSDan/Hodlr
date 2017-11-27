@@ -23,17 +23,17 @@ namespace Hodlr.Droid
 
         private static CurrencySymbolManager_Android symbolManager;
 
-        private void UpdateWidgets(Context context, AppWidgetManager appWidgetManager,
+        public void UpdateWidgets(Context context, AppWidgetManager appWidgetManager,
                                    int[] appWidgetIds, string updateMessage, string totalVal, string profitVal, Color profCol, bool updating, bool setIntents = false)
         {
             for (int i = 0; i < appWidgetIds.Length; i++)
             {
                 int widgetId = appWidgetIds[i];
-                RemoteViews remoteViews = new RemoteViews(context.PackageName,
-                                                          Resource.Layout.Widget);
-                remoteViews.SetViewVisibility(Resource.Id.widgetButton, (updating)? Android.Views.ViewStates.Gone : Android.Views.ViewStates.Visible);
-                remoteViews.SetViewVisibility(Resource.Id.widgetLoading, (updating)? Android.Views.ViewStates.Visible : Android.Views.ViewStates.Gone);
-                appWidgetManager.UpdateAppWidget(widgetId, remoteViews);
+                RemoteViews remoteViews = new RemoteViews(context.PackageName, Resource.Layout.Widget);
+                remoteViews.SetViewVisibility(Resource.Id.widgetButton, (updating)? 
+                    Android.Views.ViewStates.Gone : Android.Views.ViewStates.Visible);
+                remoteViews.SetViewVisibility(Resource.Id.widgetLoading, (updating)? 
+                    Android.Views.ViewStates.Visible : Android.Views.ViewStates.Gone);
 
                 if (!string.IsNullOrWhiteSpace(profitVal))
                 {
@@ -66,9 +66,9 @@ namespace Hodlr.Droid
                     Intent activityIntent = new Intent(context, typeof(MainActivity));
                     PendingIntent pendingAct = PendingIntent.GetActivity(context, 0, activityIntent, 0);
                     remoteViews.SetOnClickPendingIntent(Resource.Id.widgetImage, pendingAct);
-
-                    appWidgetManager.UpdateAppWidget(widgetId, remoteViews);
                 }
+
+                appWidgetManager.UpdateAppWidget(widgetId, remoteViews);
             }
         }
 

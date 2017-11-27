@@ -1,6 +1,7 @@
 ﻿
 using Acr.UserDialogs;
 using Android.App;
+using Android.Content;
 using Android.Content.PM;
 using Android.OS;
 
@@ -9,6 +10,8 @@ namespace Hodlr.Droid
     [Activity(Label = "Hodlr", Icon = "@mipmap/icon", Theme = "@style/MainTheme", MainLauncher = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation)]
     public class MainActivity : global::Xamarin.Forms.Platform.Android.FormsAppCompatActivity
     {
+        public static Context Context;
+
         protected override void OnCreate(Bundle bundle)
         {
             TabLayoutResource = Resource.Layout.Tabbar;
@@ -18,6 +21,7 @@ namespace Hodlr.Droid
             UserDialogs.Init(this);
             global::Xamarin.Forms.Forms.Init(this, bundle);
             LoadApplication(new App());
+            Context = this;
         }
     }
 }

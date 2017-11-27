@@ -1,4 +1,5 @@
 ﻿using Acr.UserDialogs;
+using Hodlr.Interfaces;
 using Hodlr.Models;
 using System;
 using System.Collections.Generic;
@@ -335,6 +336,9 @@ namespace Hodlr.Pages
                 AppUtils.GetMoneyString(Math.Abs(profit), AppUtils.FiatPref),
                 plusMinus, 
                 Math.Abs(percentChange));
+
+            // Update the user's widgets if they have any
+            DependencyService.Get<IWidgetManager>().UpdateWidget(btcUsdVal, profit, AppUtils.FiatPref);
         }
     }
 }
