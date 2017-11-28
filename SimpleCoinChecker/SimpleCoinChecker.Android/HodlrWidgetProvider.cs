@@ -112,26 +112,27 @@ namespace Hodlr.Droid
                 }
 
                 double totalBtc = 0;
-                double totalFiat = 0;
+                double floatingFiat = 0;
+                double totalFiatInvestment = 0;
 
                 foreach (var tr in transactions)
                 {
-                    double thisFiat = AppUtils.ConvertFiat(tr.FiatCurrency, cache.FiatPref, tr.FiatValue, convert);
+                    double thisFiat = AppUtils.ConvertFiat(tr.FiatCurrency, AppUtils.FiatPref, tr.FiatValue);
 
                     if (tr.AcquireBtc)
                     {
                         totalBtc += tr.BtcAmount;
-                        totalFiat -= thisFiat;
+                        totalFiatInvestment += thisFiat;
                     }
                     else
                     {
                         totalBtc -= tr.BtcAmount;
-                        totalFiat += thisFiat;
+                        floatingFiat += thisFiat;
                     }
                 }
 
-                double btcFiatVal = AppUtils.GetFiatValOfBtc(cache.FiatPref, totalBtc, convert);
-                double profit = totalFiat + btcFiatVal;
+                double btcFiatVal = AppUtils.GetFiatValOfBtc(AppUtils.FiatPref, totalBtc);
+                double profit = floatingFiat + btcFiatVal - totalFiatInvestment;
 
                 if (symbolManager == null) symbolManager = new CurrencySymbolManager_Android();
 

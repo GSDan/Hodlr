@@ -297,7 +297,8 @@ namespace Hodlr.Pages
         {
             List<Transaction> transactions = App.DB.GetTransactions().ToList();
             double totalBtc = 0;
-            double totalFiat = 0;
+            double floatingFiat = 0;
+            double totalFiatInvestment = 0;
 
             foreach (var tr in transactions)
             {
@@ -306,30 +307,30 @@ namespace Hodlr.Pages
                 if (tr.AcquireBtc)
                 {
                     totalBtc += tr.BtcAmount;
-                    totalFiat -= thisFiat;
+                    totalFiatInvestment += thisFiat;
                 }
                 else
                 {
                     totalBtc -= tr.BtcAmount;
-                    totalFiat += thisFiat;
+                    floatingFiat += thisFiat;
                 }
             }
             
-            double btcUsdVal = AppUtils.GetFiatValOfBtc(AppUtils.FiatPref, totalBtc);
-            double profit = totalFiat + btcUsdVal;
+            double btcFiatVal = AppUtils.GetFiatValOfBtc(AppUtils.FiatPref, totalBtc);
+            double profit = floatingFiat + btcFiatVal - totalFiatInvestment;
 
             fiatValueLabel.Text = string.Format("{0:0.00000000} BTC at {1} per coin",
                 totalBtc,
                 AppUtils.GetMoneyString(AppUtils.ConvertFiat("USD", AppUtils.FiatPref, AppUtils.FiatConvert.UsdToBtc), AppUtils.FiatPref));
 
-            userValueLabel.Text = AppUtils.GetMoneyString(btcUsdVal, AppUtils.FiatPref);
+            userValueLabel.Text = AppUtils.GetMoneyString(btcFiatVal, AppUtils.FiatPref);
 
             string profLoss = (profit >= 0) ? "Profit" : "Loss";
             string plusMinus = (profit >= 0) ? "+" : "-";
 
             profitLabel.TextColor = (profit >= 0) ? Color.ForestGreen : Color.IndianRed;
 
-            double percentChange = (totalFiat != 0)? profit / totalFiat * 100 : 0;
+            double percentChange = (floatingFiat != 0)? profit / totalFiatInvestment * 100 : 0;
 
             profitLabel.Text = string.Format("{0}: {1} ({2}{3:0.0}%)", 
                 profLoss,
@@ -338,7 +339,7 @@ namespace Hodlr.Pages
                 Math.Abs(percentChange));
 
             // Update the user's widgets if they have any
-            DependencyService.Get<IWidgetManager>().UpdateWidget(btcUsdVal, profit, AppUtils.FiatPref);
+            DependencyService.Get<IWidgetManager>().UpdateWidget(btcFiatVal, profit, AppUtils.FiatPref);
         }
     }
 }
