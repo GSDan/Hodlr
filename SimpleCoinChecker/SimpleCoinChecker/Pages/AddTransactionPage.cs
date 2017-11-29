@@ -12,9 +12,11 @@ namespace Hodlr.Pages
         private Label typeLabel;
         private Switch typeSwitch;
         private Entry fiatAmountEntry;
-        private Entry btcAmountEntry;
+        private Entry cryptoAmountEntry;
         private Picker fiatPicker;
+        private Picker cryptoPicker;
         private DatePicker datePicker;
+        private Label cryptoAmountPrompt;
 
         private Dictionary<bool, string> switchLabelVals = new Dictionary<bool, string>();
 
@@ -30,8 +32,16 @@ namespace Hodlr.Pages
             fiatPicker.SelectedItem = AppUtils.FiatPref;
             fiatPicker.SelectedIndexChanged += FiatPicker_SelectedIndexChanged;
 
-            switchLabelVals.Add(true, "Purchasing Bitcoin");
-            switchLabelVals.Add(false, "Selling Bitcoin");
+            cryptoPicker = new Picker
+            {
+                Title = "Choose crypto currency"
+            };
+            cryptoPicker.ItemsSource = AppUtils.CryptoCurrencies;
+            cryptoPicker.SelectedItem = AppUtils.CryptoCurrencies[0];
+            cryptoPicker.SelectedIndexChanged += CryptoPicker_SelectedIndexChanged;
+
+            switchLabelVals.Add(true, "Buying " + cryptoPicker.SelectedItem.ToString());
+            switchLabelVals.Add(false, "Selling " + cryptoPicker.SelectedItem.ToString());
 
             typeLabel = new Label
             {
@@ -55,9 +65,13 @@ namespace Hodlr.Pages
             };
             fiatAmountEntry.TextChanged += FiatAmountEntry_TextChanged;
 
-            btcAmountEntry = new Entry
+            cryptoAmountPrompt = new Label {
+                Text = string.Format("Amount of {0} exchanged:", cryptoPicker.SelectedItem.ToString()),
+                FontSize = 15 };
+
+            cryptoAmountEntry = new Entry
             {
-                Placeholder = "Bitcoin amount",
+                Placeholder = string.Format("{0} amount", cryptoPicker.SelectedItem.ToString()),
                 Keyboard = Keyboard.Numeric
             };
 
@@ -83,6 +97,10 @@ namespace Hodlr.Pages
                     Padding = new Thickness(30),
                     Children =
                     {
+                        new Label { Text = "Choose currency:", FontSize = 15 },
+                        fiatPicker,
+                        new Label { Text = "Choose crypto:", FontSize = 15 },
+                        cryptoPicker,
                         new StackLayout
                         {
                             Orientation = StackOrientation.Horizontal,
@@ -92,18 +110,25 @@ namespace Hodlr.Pages
                                 typeSwitch
                             }
                         },
-                        new Label { Text = "Choose currency:", FontSize = 15 },
-                        fiatPicker,
                         new Label { Text = "Amount of fiat exchanged:", FontSize = 15 },
                         fiatAmountEntry,
-                        new Label { Text = "Amount of BTC exchanged:", FontSize = 15 },
-                        btcAmountEntry,
+                        cryptoAmountPrompt,
+                        cryptoAmountEntry,
                         new Label { Text = "Transaction date:", FontSize = 15 },
                         datePicker,
                         submitButton
                     }
                 }
             };
+        }
+
+        private void CryptoPicker_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            cryptoAmountEntry.Placeholder = string.Format("{0} amount", cryptoPicker.SelectedItem.ToString());
+            switchLabelVals[true] = "Buying " + cryptoPicker.SelectedItem.ToString();
+            switchLabelVals[false] = "Selling " + cryptoPicker.SelectedItem.ToString();
+            typeLabel.Text = switchLabelVals[typeSwitch.IsToggled];
+            cryptoAmountPrompt.Text = string.Format("Amount of {0} exchanged:", cryptoPicker.SelectedItem.ToString());
         }
 
         private void TypeSwitch_Toggled(object sender, ToggledEventArgs e)
@@ -113,25 +138,26 @@ namespace Hodlr.Pages
 
         private void FiatPicker_SelectedIndexChanged(object sender, EventArgs e)
         {
-            UpdateBtcLabel();
+            UpdateCryptoLabel();
         }
 
         private void FiatAmountEntry_TextChanged(object sender, TextChangedEventArgs e)
         {
-            UpdateBtcLabel();
+            UpdateCryptoLabel();
         }
 
-        private void UpdateBtcLabel()
+        private void UpdateCryptoLabel()
         {
             if(string.IsNullOrWhiteSpace(fiatAmountEntry.Text))
             {
-                btcAmountEntry.Text = "0";
+                cryptoAmountEntry.Text = "0";
             }
             else
             {
                 if (!Double.TryParse(fiatAmountEntry.Text, out double fiatAmount)) fiatAmount = 0;
 
-                btcAmountEntry.Text = AppUtils.GetBtcValOfFiat(fiatPicker.SelectedItem.ToString(),
+                cryptoAmountEntry.Text = AppUtils.GetCryptoValOfFiat(fiatPicker.SelectedItem.ToString(),
+                    cryptoPicker.SelectedItem.ToString(),
                     fiatAmount).ToString();
             }
         }
@@ -139,15 +165,17 @@ namespace Hodlr.Pages
         private void SubmitButton_Clicked(object sender, EventArgs e)
         {
             if (!Double.TryParse(fiatAmountEntry.Text, out double fiatAmount)) fiatAmount = 0;
-            if (!Double.TryParse(btcAmountEntry.Text, out double btcAmount)) btcAmount = 0;
+            if (!Double.TryParse(cryptoAmountEntry.Text, out double btcAmount)) btcAmount = 0;
 
             App.DB.AddOrUpdateTransaction(new Transaction
             {
-                BtcAmount = btcAmount,
+                CryptoAmount = btcAmount,
                 FiatValue = fiatAmount,
                 FiatCurrency = fiatPicker.SelectedItem.ToString(),
                 CreatedAt = datePicker.Date,
-                AcquireBtc = typeSwitch.IsToggled
+                AcquireCrypto = typeSwitch.IsToggled,
+                CryptoCurrency = cryptoPicker.SelectedItem.ToString(),
+                DataVersion = Transaction.CurrentDataVersion
             });
 
             Navigation.PopAsync();

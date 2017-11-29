@@ -20,8 +20,20 @@ namespace Hodlr
 
         public IEnumerable<Transaction> GetTransactions()
         {
-            return (from t in connection.Table<Transaction>()
+            var allTransactions = (from t in connection.Table<Transaction>()
                     select t).ToList();
+
+            // If data is out of date, update it to new format and save it
+            // (Should only go through once per app update)
+            foreach(Transaction t in allTransactions.Where(t => t.DataVersion < Transaction.CurrentDataVersion))
+            {
+                t.AcquireCrypto = t.AcquireBtc;
+                t.CryptoAmount = t.BtcAmount;
+                if (string.IsNullOrWhiteSpace(t.CryptoCurrency)) t.CryptoCurrency = "BTC";
+                AddOrUpdateTransaction(t);
+            }
+
+            return allTransactions;
         }
 
         public void DeleteTransaction(int id)

@@ -104,45 +104,16 @@ namespace Hodlr.Droid
                     }
                 }
 
-                convert.UsdToBtc = await AppUtils.GetCurrentUsdtoBtc(AppUtils.PriceSources[cache.SourcePref]);
-
-                if (convert.UsdToBtc < 0)
-                {
-                    throw new Exception("Failed to refresh");
-                }
-
-                double totalBtc = 0;
-                double floatingFiat = 0;
-                double totalFiatInvestment = 0;
-
-                foreach (var tr in transactions)
-                {
-                    double thisFiat = AppUtils.ConvertFiat(tr.FiatCurrency, AppUtils.FiatPref, tr.FiatValue);
-
-                    if (tr.AcquireBtc)
-                    {
-                        totalBtc += tr.BtcAmount;
-                        totalFiatInvestment += thisFiat;
-                    }
-                    else
-                    {
-                        totalBtc -= tr.BtcAmount;
-                        floatingFiat += thisFiat;
-                    }
-                }
-
-                double btcFiatVal = AppUtils.GetFiatValOfBtc(AppUtils.FiatPref, totalBtc);
-                double profit = floatingFiat + btcFiatVal - totalFiatInvestment;
+                HodlStatus status = HodlStatus.GetCurrent(transactions, convert);
 
                 if (symbolManager == null) symbolManager = new CurrencySymbolManager_Android();
-
                 RegionInfo region = symbolManager.GetRegion(cache.FiatPref);
                 CultureInfo culture = symbolManager.GetCulture(region.Name);
 
-                string totalVal = string.Format(culture, "{0:C}", btcFiatVal);
-                string profitVal = string.Format(culture, "{0:C}", profit);
+                string totalVal = string.Format(culture, "{0:C}", status.CryptoFiatVal);
+                string profitVal = string.Format(culture, "{0:C}", status.Profit);
                 string timeVal = string.Format("Updated: {0:t}", DateTime.Now);
-                Color profCol = (profit >= 0) ? Color.ForestGreen : Color.IndianRed;
+                Color profCol = (status.Profit >= 0) ? Color.ForestGreen : Color.IndianRed;
 
                 UpdateWidgets(context, appWidgetManager, appWidgetIds, timeVal, totalVal, profitVal, profCol, false, true);
 

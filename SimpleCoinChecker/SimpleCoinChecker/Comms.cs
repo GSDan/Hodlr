@@ -16,16 +16,17 @@ namespace Hodlr
 
     public static class Comms
     {
-        public static string BlockChainApi = "https://blockchain.info/";
-        public static string BlockChainPriceRoute = "ticker";
-        public static string CoindeskApi = "https://api.coindesk.com/v1/bpi/";
-        public static string CoinDeskPriceRoute = "currentprice.json";
+        //public static string BlockChainApi = "https://blockchain.info/";
+        //public static string BlockChainPriceRoute = "ticker";
+        //public static string CoindeskApi = "https://api.coindesk.com/v1/bpi/";
+        //public static string CoinDeskPriceRoute = "currentprice.json";
+
         public static string CoinbaseApi = "https://api.coinbase.com/v2/";
-        public static string CoinbasePriceRoute = "prices/spot?currency=USD";
+        public static string CoinbasePriceRoute = "prices/{0}-USD/spot";
         public static string GdaxApi = "https://api.gdax.com/";
-        public static string GdaxPriceRoute = "products/BTC-USD/ticker";
+        public static string GdaxPriceRoute = "products/{0}-USD/ticker";
         public static string CryptoCompareApi = "https://min-api.cryptocompare.com/";
-        public static string CryptoCompareRoute = "data/price?fsym=BTC&tsyms=USD";
+        public static string CryptoCompareRoute = "data/price?fsym={0}&tsyms=USD";
         public static string ConverterApi = "http://api.fixer.io/";
 
         public static async Task<ServerResponse<T>> Get<T>(string apiBase, string route)

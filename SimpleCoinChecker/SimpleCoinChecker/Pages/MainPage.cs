@@ -11,8 +11,9 @@ namespace Hodlr.Pages
 {
     public class MainPage : ContentPage
     {
+        private Grid portfolioGrid;
         private Label userValueLabel;
-        private Label fiatValueLabel;
+        private Label cashValueLabel;
         private Label profitLabel;
         private Picker fiatPicker;
         private Picker sourcePicker;
@@ -34,27 +35,41 @@ namespace Hodlr.Pages
             refresh.Clicked += Refresh_Clicked;
             ToolbarItems.Add(refresh);
 
-            userValueLabel = new Label
-            {
-                FontSize = 30,
-                HorizontalTextAlignment = TextAlignment.Center,
-                HorizontalOptions = LayoutOptions.CenterAndExpand,
-                Margin = new Thickness(10),
-                Text = "Loading"
-            };
             profitLabel = new Label
             {
-                FontSize = 27,
+                FontSize = 28,
                 HorizontalTextAlignment = TextAlignment.Center,
                 HorizontalOptions = LayoutOptions.CenterAndExpand,
                 Text = "Loading"
             };
-            fiatValueLabel = new Label
+
+            userValueLabel = new Label
+            {
+                FontSize = 25,
+                HorizontalTextAlignment = TextAlignment.Center,
+                HorizontalOptions = LayoutOptions.CenterAndExpand,
+                Text = "Loading"
+            };
+
+            cashValueLabel = new Label
+            {
+                FontSize = 16,
+                HorizontalTextAlignment = TextAlignment.Center,
+                HorizontalOptions = LayoutOptions.CenterAndExpand,
+                Text = "Loading"
+            };
+
+            portfolioGrid = new Grid();
+            portfolioGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
+            portfolioGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
+            portfolioGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+            portfolioGrid.Children.Add(new Label
             {
                 HorizontalTextAlignment = TextAlignment.Center,
                 HorizontalOptions = LayoutOptions.CenterAndExpand,
                 Text = "Loading"
-            };
+            },0,0);
 
             fiatPicker = new Picker
             {
@@ -103,9 +118,10 @@ namespace Hodlr.Pages
                 HorizontalOptions = LayoutOptions.FillAndExpand,
                 VerticalOptions = LayoutOptions.FillAndExpand,
                 Children = {
-                    userValueLabel,
                     profitLabel,
-                    fiatValueLabel,
+                    userValueLabel,
+                    portfolioGrid,
+                    cashValueLabel,
                     pickerLayout
                 }
             };
@@ -296,50 +312,54 @@ namespace Hodlr.Pages
         private void UpdateLabels()
         {
             List<Transaction> transactions = App.DB.GetTransactions().ToList();
-            double totalBtc = 0;
-            double floatingFiat = 0;
-            double totalFiatInvestment = 0;
 
-            foreach (var tr in transactions)
+            HodlStatus status = HodlStatus.GetCurrent(transactions);
+
+            portfolioGrid.Children.Clear();
+            portfolioGrid.ColumnDefinitions.Clear();
+
+            for (int i = 0; i < AppUtils.CryptoCurrencies.Length; i++)
             {
-                double thisFiat = AppUtils.ConvertFiat(tr.FiatCurrency, AppUtils.FiatPref, tr.FiatValue);
-
-                if (tr.AcquireBtc)
-                {
-                    totalBtc += tr.BtcAmount;
-                    totalFiatInvestment += thisFiat;
-                }
-                else
-                {
-                    totalBtc -= tr.BtcAmount;
-                    floatingFiat += thisFiat;
-                }
+                string key = AppUtils.CryptoCurrencies[i];
+                portfolioGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                portfolioGrid.Children.Add(new Label
+                        {
+                            HorizontalTextAlignment = TextAlignment.Center,
+                            HorizontalOptions = LayoutOptions.CenterAndExpand,
+                            Text = string.Format(
+                                "{0:0.00000} {1}",
+                                status.TotalCryptos[key],
+                                key)
+                        },i, 0);
+                portfolioGrid.Children.Add(
+                    new Label
+                    {
+                        HorizontalTextAlignment = TextAlignment.Center,
+                        HorizontalOptions = LayoutOptions.CenterAndExpand,
+                        Text = "at " + AppUtils.GetMoneyString(
+                                AppUtils.ConvertFiat(
+                                    "USD",
+                                    AppUtils.FiatPref,
+                                    AppUtils.FiatConvert.UsdToCrypto[key]),
+                                AppUtils.FiatPref)
+                    }, i, 1);
             }
-            
-            double btcFiatVal = AppUtils.GetFiatValOfBtc(AppUtils.FiatPref, totalBtc);
-            double profit = floatingFiat + btcFiatVal - totalFiatInvestment;
 
-            fiatValueLabel.Text = string.Format("{0:0.00000000} BTC at {1} per coin",
-                totalBtc,
-                AppUtils.GetMoneyString(AppUtils.ConvertFiat("USD", AppUtils.FiatPref, AppUtils.FiatConvert.UsdToBtc), AppUtils.FiatPref));
+            cashValueLabel.Text = "Cashed out: " + AppUtils.GetMoneyString(status.FloatingFiat, AppUtils.FiatPref);
+            userValueLabel.Text = AppUtils.GetMoneyString(status.CryptoFiatVal, AppUtils.FiatPref);
 
-            userValueLabel.Text = AppUtils.GetMoneyString(btcFiatVal, AppUtils.FiatPref);
+            string profLoss = (status.Profit >= 0) ? "Profit" : "Loss";
+            string plusMinus = (status.Profit >= 0) ? "+" : "-";
 
-            string profLoss = (profit >= 0) ? "Profit" : "Loss";
-            string plusMinus = (profit >= 0) ? "+" : "-";
-
-            profitLabel.TextColor = (profit >= 0) ? Color.ForestGreen : Color.IndianRed;
-
-            double percentChange = (floatingFiat != 0)? profit / totalFiatInvestment * 100 : 0;
-
+            profitLabel.TextColor = (status.Profit >= 0) ? Color.ForestGreen : Color.IndianRed;
             profitLabel.Text = string.Format("{0}: {1} ({2}{3:0.0}%)", 
                 profLoss,
-                AppUtils.GetMoneyString(Math.Abs(profit), AppUtils.FiatPref),
+                AppUtils.GetMoneyString(Math.Abs(status.Profit), AppUtils.FiatPref),
                 plusMinus, 
-                Math.Abs(percentChange));
+                Math.Abs(status.PercentChange));
 
             // Update the user's widgets if they have any
-            DependencyService.Get<IWidgetManager>().UpdateWidget(btcFiatVal, profit, AppUtils.FiatPref);
+            DependencyService.Get<IWidgetManager>().UpdateWidget(status.CryptoFiatVal, status.Profit, AppUtils.FiatPref);
         }
     }
 }

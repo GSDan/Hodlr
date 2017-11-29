@@ -49,6 +49,7 @@
     <Compile Include="Models\CoindeskResult.cs" />
     <Compile Include="Models\CryptoCompareResult.cs" />
     <Compile Include="Models\GDAXResult.cs" />
+    <Compile Include="Models\HodlStatus.cs" />
     <Compile Include="Pages\AddTransactionPage.cs" />
     <Compile Include="Pages\MainPage.cs" />
     <Compile Include="Models\FiatConvert.cs" />

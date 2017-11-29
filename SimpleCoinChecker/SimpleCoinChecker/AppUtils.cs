@@ -18,67 +18,80 @@ namespace Hodlr
         public static int SourcePrefIndex = 0;
         public static int LastShownHint = 0;
 
+        // Commented out providers only give BTC prices
+        //public const string CoindeskName = "Coindesk";
+        //public const string BlockchainName = "Blockchain.info";
         public const string CryptoCompareName = "CryptoCompare";
         public const string GDAXName = "GDAX";
-        public const string BlockchainName = "Blockchain.info";
-        public const string CoindeskName = "Coindesk";
         public const string CoinbaseName = "Coinbase";
-        public static string[] PriceSources = { CryptoCompareName, GDAXName, BlockchainName, CoinbaseName, CoindeskName };
+        public static string[] PriceSources = { CryptoCompareName, GDAXName, CoinbaseName };
+        public static string[] CryptoCurrencies = { "BTC", "ETH", "LTC" };
 
-        public static async Task<double> GetCurrentUsdtoBtc(string priceSource)
+        public static async Task<double> GetCurrentUsdtoCrypto(string priceSource, string crypto)
         {
             switch(priceSource)
             {
-                case BlockchainName:
-                    var btcResp = await Comms.Get<Dictionary<string, BlockchainResult>>(Comms.BlockChainApi, Comms.BlockChainPriceRoute);
-                    if (btcResp.Success) return btcResp.Data["USD"].Delayed;
-                    break;
-                case CoindeskName:
-                    var deskResp = await Comms.Get<CoindeskResult>(Comms.CoindeskApi, Comms.CoinDeskPriceRoute);
-                    if (deskResp.Success) return deskResp.Data.Bpi["USD"].Rate_float;
-                    break;
+                //case BlockchainName:
+                //    var btcResp = await Comms.Get<Dictionary<string, BlockchainResult>>(Comms.BlockChainApi, Comms.BlockChainPriceRoute);
+                //    if (btcResp.Success) return btcResp.Data["USD"].Delayed;
+                //    break;
+                //case CoindeskName:
+                //    var deskResp = await Comms.Get<CoindeskResult>(Comms.CoindeskApi, Comms.CoinDeskPriceRoute);
+                //    if (deskResp.Success) return deskResp.Data.Bpi["USD"].Rate_float;
+                //    break;
                 case CoinbaseName:
-                    var cbResp = await Comms.Get<CoinbaseResult>(Comms.CoinbaseApi, Comms.CoinbasePriceRoute);
+                    var cbResp = await Comms.Get<CoinbaseResult>(Comms.CoinbaseApi, string.Format(Comms.CoinbasePriceRoute, crypto));
                     if (cbResp.Success) return cbResp.Data.Data.Amount;
                     break;
                 case GDAXName:
-                    var gdaxResp = await Comms.Get<GDAXResult>(Comms.GdaxApi, Comms.GdaxPriceRoute);
+                    var gdaxResp = await Comms.Get<GDAXResult>(Comms.GdaxApi, string.Format(Comms.GdaxPriceRoute, crypto));
                     if (gdaxResp.Success) return gdaxResp.Data.Price;
                     break;
                 case CryptoCompareName:
-                    var compResp = await Comms.Get<CryptoCompareResult>(Comms.CryptoCompareApi, Comms.CryptoCompareRoute);
+                    var compResp = await Comms.Get<CryptoCompareResult>(Comms.CryptoCompareApi, string.Format(Comms.CryptoCompareRoute, crypto));
                     if (compResp.Success) return compResp.Data.USD;
                     break;
             }             
             return -1;
         }
 
-        public static async Task<bool> RefreshVals(string source = BlockchainName)
+        public static async Task<bool> RefreshVals(string source = CryptoCompareName)
         {
-            double returnedUsdtoBtc = await GetCurrentUsdtoBtc(source);
             FiatConvert convert = FiatConvert;
 
-            if (returnedUsdtoBtc != -1)
+            if (convert == null || (DateTime.Now - LastConvertRefresh) > TimeSpan.FromDays(1))
             {
-                if (convert == null || 
-                    (DateTime.Now - LastConvertRefresh) > TimeSpan.FromDays(1))
+                var fiatResp = await Comms.Get<FiatConvert>(Comms.ConverterApi, "latest?base=USD");
+                if (fiatResp.Success && fiatResp.Data != null)
                 {
-                    var fiatResp = await Comms.Get<FiatConvert>(Comms.ConverterApi, "latest?base=USD");
-                    if (fiatResp.Success && fiatResp.Data != null)
-                    {
-                        LastConvertRefresh = DateTime.Now;
-                        convert = fiatResp.Data;
-                    }
-                }
-                if (convert != null)
-                {
-                    convert.UsdToBtc = returnedUsdtoBtc;
-                    FiatConvert = convert;
-
-                    SaveCache();
+                    LastConvertRefresh = DateTime.Now;
+                    convert = fiatResp.Data;
                 }
             }
-            return (returnedUsdtoBtc != -1) && (convert != null);
+
+            if (convert == null) return false;
+
+            bool success = true;
+
+            foreach(string crypto in CryptoCurrencies)
+            {
+                double returnedUsdToCrypto = await GetCurrentUsdtoCrypto(source, crypto);
+                if (returnedUsdToCrypto == -1)
+                {
+                    success = false;
+                    break;
+                }
+
+                convert.UsdToCrypto[crypto] = returnedUsdToCrypto;    
+            }
+
+            if(success)
+            {
+                FiatConvert = convert;
+                SaveCache();
+            }
+
+            return success;
         }
 
         public static void SetupCache()
@@ -116,18 +129,18 @@ namespace Hodlr
             return currs;
         }
 
-        public static double GetFiatValOfBtc(string currency, double btcAmount, FiatConvert convert = null)
+        public static double GetFiatValOfCrypto(string currency, string crypto, double cryptoAmount, FiatConvert convert = null)
         {
             if (convert == null) convert = FiatConvert;
-            double inUsd = btcAmount * convert.UsdToBtc;
+            double inUsd = cryptoAmount * convert.UsdToCrypto[crypto];
             return  ConvertFiat("USD", currency, inUsd, convert);            
         }
 
-        public static double GetBtcValOfFiat(string currency, double fiatAmount, FiatConvert convert = null)
+        public static double GetCryptoValOfFiat(string currency, string crypto, double fiatAmount, FiatConvert convert = null)
         {
             if (convert == null) convert = FiatConvert;
             double inUsd = ConvertFiat(currency, "USD", fiatAmount, convert);
-            return inUsd / convert.UsdToBtc;
+            return inUsd / convert.UsdToCrypto[crypto];
         }
 
         public static double ConvertFiat(string lhs, string rhs, double amount, FiatConvert convert = null)

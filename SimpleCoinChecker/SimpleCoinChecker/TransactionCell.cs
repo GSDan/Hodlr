@@ -80,12 +80,13 @@ namespace Hodlr
             FiatAmountLabel.Text = AppUtils.GetMoneyString(c.Item.FiatValue, c.Item.FiatCurrency);
 
             CurrentAmountLabel.Text = AppUtils.GetMoneyString(
-                AppUtils.GetFiatValOfBtc(c.Item.FiatCurrency, c.Item.BtcAmount),
+                AppUtils.GetFiatValOfCrypto(c.Item.FiatCurrency, c.Item.CryptoCurrency, c.Item.CryptoAmount),
                 c.Item.FiatCurrency);
 
-            BtcAmountLabel.Text = string.Format("{0} {1:0.0000000} BTC", 
-                (c.Item.AcquireBtc)? "Bought" : "Sold",
-                c.Item.BtcAmount);
+            BtcAmountLabel.Text = string.Format("{0} {1:0.0000000} {2}", 
+                (c.Item.AcquireCrypto)? "Bought" : "Sold",
+                c.Item.CryptoAmount,
+                c.Item.CryptoCurrency);
             DateLabel.Text = string.Format("Made on {0:dd/MM/yy}", c.Item.CreatedAt);
 
             base.OnBindingContextChanged();

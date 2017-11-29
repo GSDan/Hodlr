@@ -8,6 +8,12 @@ namespace Hodlr.Models
         public string BaseFiat { get; set; }
         public DateTime Date { get; set; }
         public Dictionary<string, double> Rates { get; set; }
-        public double UsdToBtc { get; set; }
+        public Dictionary<string, double> UsdToCrypto { get; set; }
+
+        public FiatConvert()
+        {
+            Rates = new Dictionary<string, double>();
+            UsdToCrypto = new Dictionary<string, double>();
+        }
     }
 }
