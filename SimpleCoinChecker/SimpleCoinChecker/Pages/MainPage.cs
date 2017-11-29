@@ -53,13 +53,15 @@ namespace Hodlr.Pages
 
             cashValueLabel = new Label
             {
-                FontSize = 16,
+                FontSize = 14,
                 HorizontalTextAlignment = TextAlignment.Center,
                 HorizontalOptions = LayoutOptions.CenterAndExpand,
                 Text = "Loading"
             };
 
             portfolioGrid = new Grid();
+            portfolioGrid.RowSpacing = 1;
+            portfolioGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
             portfolioGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
             portfolioGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
             portfolioGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -74,28 +76,26 @@ namespace Hodlr.Pages
             fiatPicker = new Picker
             {
                 Title = "Choose Fiat Currency",
-                HorizontalOptions = LayoutOptions.Start
+                HorizontalOptions = LayoutOptions.Start,
+                Scale = 0.8d
             };
             fiatPicker.SelectedIndexChanged += FiatPicker_SelectedIndexChanged;
 
             sourcePicker = new Picker
             {
                 Title = "Choose price source",
-                HorizontalOptions = LayoutOptions.CenterAndExpand
+                HorizontalOptions = LayoutOptions.CenterAndExpand,
+                Scale = 0.8d
             };
             sourcePicker.ItemsSource = AppUtils.PriceSources;
             sourcePicker.SelectedIndexChanged += SourcePicker_SelectedIndexChanged;
 
-            StackLayout pickerLayout = new StackLayout
-            {
-                Orientation = StackOrientation.Horizontal,
-                Spacing = 10,
-                Children =
-                {
-                    fiatPicker,
-                    sourcePicker
-                }
-            };
+            Grid pickerGrid = new Grid();
+            pickerGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
+            pickerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            pickerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            pickerGrid.Children.Add(fiatPicker, 0, 0);
+            pickerGrid.Children.Add(sourcePicker, 1, 0);
 
             Button addButton = new Button { Text = "Add Transaction" };
             addButton.Clicked += (a,b)=>{ Navigation.PushAsync(new AddTransactionPage()); };
@@ -113,8 +113,8 @@ namespace Hodlr.Pages
 
             StackLayout profitSection = new StackLayout
             {
-                Spacing = 15,
-                Padding = new Thickness(30, 10),
+                Spacing = 13,
+                Padding = new Thickness(15, 10, 15, 5),
                 HorizontalOptions = LayoutOptions.FillAndExpand,
                 VerticalOptions = LayoutOptions.FillAndExpand,
                 Children = {
@@ -122,14 +122,14 @@ namespace Hodlr.Pages
                     userValueLabel,
                     portfolioGrid,
                     cashValueLabel,
-                    pickerLayout
+                    pickerGrid
                 }
             };
 
             StackLayout transactionsSection = new StackLayout
             {
                 Spacing = 15,
-                Padding = new Thickness(30, 10),
+                Padding = new Thickness(20, 10),
                 HorizontalOptions = LayoutOptions.FillAndExpand,
                 VerticalOptions = LayoutOptions.FillAndExpand,
                 Children =
@@ -326,8 +326,9 @@ namespace Hodlr.Pages
                         {
                             HorizontalTextAlignment = TextAlignment.Center,
                             HorizontalOptions = LayoutOptions.CenterAndExpand,
+                            FontSize = 12,
                             Text = string.Format(
-                                "{0:0.00000} {1}",
+                                "{0:0.000000} {1}",
                                 status.TotalCryptos[key],
                                 key)
                         },i, 0);
@@ -336,13 +337,26 @@ namespace Hodlr.Pages
                     {
                         HorizontalTextAlignment = TextAlignment.Center,
                         HorizontalOptions = LayoutOptions.CenterAndExpand,
+                        FontSize = 12,
+                        Text = AppUtils.GetMoneyString(AppUtils.GetFiatValOfCrypto(
+                            AppUtils.FiatPref,
+                            key,
+                            status.TotalCryptos[key]),
+                            AppUtils.FiatPref)
+                    }, i, 1);
+                portfolioGrid.Children.Add(
+                    new Label
+                    {
+                        HorizontalTextAlignment = TextAlignment.Center,
+                        HorizontalOptions = LayoutOptions.CenterAndExpand,
+                        FontSize = 11,
                         Text = "at " + AppUtils.GetMoneyString(
                                 AppUtils.ConvertFiat(
                                     "USD",
                                     AppUtils.FiatPref,
                                     AppUtils.FiatConvert.UsdToCrypto[key]),
                                 AppUtils.FiatPref)
-                    }, i, 1);
+                    }, i, 2);
             }
 
             cashValueLabel.Text = "Cashed out: " + AppUtils.GetMoneyString(status.FloatingFiat, AppUtils.FiatPref);
