@@ -87,7 +87,7 @@ namespace Hodlr.Droid
                 List<Transaction> transactions = (from t in db.Table<Transaction>()
                                                   select t).ToList();
                 AppCache cache = db.Table<AppCache>().FirstOrDefault();
-                FiatConvert convert = JsonConvert.DeserializeObject<FiatConvert>(cache.ConvertDataJson);;
+                FiatConvert convert = null;//JsonConvert.DeserializeObject<FiatConvert>(cache.ConvertDataJson);;
 
                 if (convert == null || (DateTime.Now - cache.LastConvertRefresh) > TimeSpan.FromDays(1))
                 {
@@ -104,7 +104,11 @@ namespace Hodlr.Droid
                     }
                 }
 
-                HodlStatus status = HodlStatus.GetCurrent(transactions, convert);
+                FiatConvert refreshed = await AppUtils.RefreshCryptos(convert, AppUtils.PriceSources[cache.SourcePref]);
+
+                if(refreshed == null) throw new Exception("Failed to refresh");
+
+                HodlStatus status = HodlStatus.GetCurrent(transactions, refreshed);
 
                 if (symbolManager == null) symbolManager = new CurrencySymbolManager_Android();
                 RegionInfo region = symbolManager.GetRegion(cache.FiatPref);

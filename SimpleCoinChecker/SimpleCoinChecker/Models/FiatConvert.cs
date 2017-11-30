@@ -14,6 +14,11 @@ namespace Hodlr.Models
         {
             Rates = new Dictionary<string, double>();
             UsdToCrypto = new Dictionary<string, double>();
+
+            foreach(string crypto in AppUtils.CryptoCurrencies)
+            {
+                UsdToCrypto[crypto] = 0;
+            }
         }
     }
 }

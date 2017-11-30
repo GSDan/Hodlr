@@ -55,7 +55,26 @@ namespace Hodlr
             return -1;
         }
 
-        public static async Task<bool> RefreshVals(string source = CryptoCompareName)
+        public static async Task<FiatConvert> RefreshCryptos(FiatConvert con, string source)
+        {
+            bool success = true;
+
+            foreach (string crypto in CryptoCurrencies)
+            {
+                double returnedUsdToCrypto = await GetCurrentUsdtoCrypto(source, crypto);
+                if (returnedUsdToCrypto == -1)
+                {
+                    success = false;
+                    break;
+                }
+
+                con.UsdToCrypto[crypto] = returnedUsdToCrypto;
+            }
+
+            return (success) ? con : null;
+        }
+
+        public static async Task<bool> RefreshAllVals(string source = CryptoCompareName)
         {
             FiatConvert convert = FiatConvert;
 
@@ -71,27 +90,15 @@ namespace Hodlr
 
             if (convert == null) return false;
 
-            bool success = true;
+            FiatConvert refreshed = await RefreshCryptos(convert, source);
 
-            foreach(string crypto in CryptoCurrencies)
-            {
-                double returnedUsdToCrypto = await GetCurrentUsdtoCrypto(source, crypto);
-                if (returnedUsdToCrypto == -1)
-                {
-                    success = false;
-                    break;
-                }
-
-                convert.UsdToCrypto[crypto] = returnedUsdToCrypto;    
-            }
-
-            if(success)
+            if(refreshed != null)
             {
                 FiatConvert = convert;
                 SaveCache();
             }
 
-            return success;
+            return refreshed != null;
         }
 
         public static void SetupCache()

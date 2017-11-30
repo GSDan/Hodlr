@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Hodlr.Models
 {
@@ -18,7 +14,7 @@ namespace Hodlr.Models
         }
         public double PercentChange
         {
-            get { return (FloatingFiat != 0) ? Profit / TotalFiatInvestment * 100 : 0; }
+            get { return (TotalFiatInvestment != 0) ? Profit / TotalFiatInvestment * 100 : 0; }
         }
 
         public HodlStatus()
@@ -41,7 +37,24 @@ namespace Hodlr.Models
                 if (tr.AcquireCrypto)
                 {
                     status.TotalCryptos[tr.CryptoCurrency] += tr.CryptoAmount;
-                    status.TotalFiatInvestment += thisFiat;
+
+                    // take from floating cash if possible
+                    if(status.FloatingFiat > 0)
+                    {
+                        double newFloating = status.FloatingFiat;
+                        if (newFloating >= thisFiat)
+                        {
+                            newFloating -= thisFiat;
+                            thisFiat = 0;
+                        }
+                        else
+                        {
+                            thisFiat -= newFloating;
+                        }
+                        status.FloatingFiat = newFloating;
+                    }
+
+                    status.TotalFiatInvestment += thisFiat;                                     
                 }
                 else
                 {
@@ -49,7 +62,7 @@ namespace Hodlr.Models
                     status.FloatingFiat += thisFiat;
                 }
             }
-
+            
             foreach(string crypto in AppUtils.CryptoCurrencies)
             {
                 status.CryptoFiatVal += AppUtils.GetFiatValOfCrypto(

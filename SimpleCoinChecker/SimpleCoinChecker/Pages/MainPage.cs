@@ -193,7 +193,7 @@ namespace Hodlr.Pages
             while(!loaded)
             {
                 UserDialogs.Instance.ShowLoading(title: "Getting Data");
-                bool success = await AppUtils.RefreshVals(AppUtils.PriceSources[AppUtils.SourcePrefIndex]);
+                bool success = await AppUtils.RefreshAllVals(AppUtils.PriceSources[AppUtils.SourcePrefIndex]);
                 UserDialogs.Instance.HideLoading();
 
                 if (!success || AppUtils.FiatConvert == null)
