@@ -87,10 +87,12 @@ namespace Hodlr.Droid
                 List<Transaction> transactions = (from t in db.Table<Transaction>()
                                                   select t).ToList();
                 AppCache cache = db.Table<AppCache>().FirstOrDefault();
-                FiatConvert convert = null;//JsonConvert.DeserializeObject<FiatConvert>(cache.ConvertDataJson);;
+                FiatConvert convert = JsonConvert.DeserializeObject<FiatConvert>(cache.ConvertDataJson);;
 
                 if (convert == null || (DateTime.Now - cache.LastConvertRefresh) > TimeSpan.FromDays(1))
                 {
+                    Android.Util.Log.Debug("Hodlr", string.Format("HODLR refreshing FiatConvert"));
+
                     var fiatResp = await Comms.Get<FiatConvert>(Comms.ConverterApi, "latest?base=USD");
                     if (fiatResp.Success && fiatResp.Data != null)
                     {
@@ -104,11 +106,13 @@ namespace Hodlr.Droid
                     }
                 }
 
-                FiatConvert refreshed = await AppUtils.RefreshCryptos(convert, AppUtils.PriceSources[cache.SourcePref]);
+                Android.Util.Log.Debug("Hodlr", "HODLR refreshing cryptos");
 
-                if(refreshed == null) throw new Exception("Failed to refresh");
+                convert = await AppUtils.RefreshCryptos(convert, AppUtils.PriceSources[cache.SourcePref]);
 
-                HodlStatus status = HodlStatus.GetCurrent(transactions, refreshed);
+                if(convert == null) throw new Exception("Failed to refresh");
+
+                HodlStatus status = HodlStatus.GetCurrent(transactions, convert, cache.FiatPref);
 
                 if (symbolManager == null) symbolManager = new CurrencySymbolManager_Android();
                 RegionInfo region = symbolManager.GetRegion(cache.FiatPref);
@@ -118,6 +122,8 @@ namespace Hodlr.Droid
                 string profitVal = string.Format(culture, "{0:C}", status.Profit);
                 string timeVal = string.Format("Updated: {0:t}", DateTime.Now);
                 Color profCol = (status.Profit >= 0) ? Color.ForestGreen : Color.IndianRed;
+
+                Android.Util.Log.Debug("Hodlr", string.Format("HODLR profit: {0}, total: {1}", profitVal, totalVal));
 
                 UpdateWidgets(context, appWidgetManager, appWidgetIds, timeVal, totalVal, profitVal, profCol, false, true);
 

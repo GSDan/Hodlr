@@ -94,7 +94,7 @@ namespace Hodlr
 
             if(refreshed != null)
             {
-                FiatConvert = convert;
+                FiatConvert = refreshed;
                 SaveCache();
             }
 

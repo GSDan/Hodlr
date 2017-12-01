@@ -26,13 +26,14 @@ namespace Hodlr.Models
             }
         }
 
-        public static HodlStatus GetCurrent(List<Transaction> transactions, FiatConvert convert = null)
+        public static HodlStatus GetCurrent(List<Transaction> transactions, FiatConvert convert = null, string fiatPref = null)
         {
             HodlStatus status = new HodlStatus();
+            if (fiatPref == null) fiatPref = AppUtils.FiatPref;
 
             foreach (var tr in transactions)
             {
-                double thisFiat = AppUtils.ConvertFiat(tr.FiatCurrency, AppUtils.FiatPref, tr.FiatValue, convert);
+                double thisFiat = AppUtils.ConvertFiat(tr.FiatCurrency, fiatPref, tr.FiatValue, convert);
 
                 if (tr.AcquireCrypto)
                 {
@@ -66,7 +67,7 @@ namespace Hodlr.Models
             foreach(string crypto in AppUtils.CryptoCurrencies)
             {
                 status.CryptoFiatVal += AppUtils.GetFiatValOfCrypto(
-                    AppUtils.FiatPref,
+                    fiatPref,
                     crypto, 
                     status.TotalCryptos[crypto],
                     convert);
