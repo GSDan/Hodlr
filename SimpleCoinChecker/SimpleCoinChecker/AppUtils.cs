@@ -16,7 +16,7 @@ namespace Hodlr
         public static FiatConvert FiatConvert;
         public static string FiatPref = "USD";
         public static int SourcePrefIndex = 0;
-        public static int LastShownHint = 0;
+        public static double LastShownHint = 0;
 
         // Commented out providers only give BTC prices
         //public const string CoindeskName = "Coindesk";

@@ -25,7 +25,7 @@ namespace Hodlr
             };
             BtcAmountLabel = new Label
             {
-                FontSize = 15,
+                FontSize = 14,
                 HorizontalOptions = LayoutOptions.Start,
                 VerticalOptions = LayoutOptions.EndAndExpand
             };
@@ -37,7 +37,7 @@ namespace Hodlr
             };
             CurrentAmountLabel = new Label
             {
-                FontSize = 19,
+                FontSize = 17,
                 HorizontalOptions = LayoutOptions.End,
                 VerticalOptions = LayoutOptions.EndAndExpand
             };
@@ -79,9 +79,24 @@ namespace Hodlr
 
             FiatAmountLabel.Text = AppUtils.GetMoneyString(c.Item.FiatValue, c.Item.FiatCurrency);
 
-            CurrentAmountLabel.Text = AppUtils.GetMoneyString(
-                AppUtils.GetFiatValOfCrypto(c.Item.FiatCurrency, c.Item.CryptoCurrency, c.Item.CryptoAmount),
-                c.Item.FiatCurrency);
+            if(c.Item.AcquireCrypto)
+            {
+                double currentAmount = AppUtils.GetFiatValOfCrypto(c.Item.FiatCurrency, c.Item.CryptoCurrency, c.Item.CryptoAmount);
+                double profit = currentAmount - c.Item.FiatValue;
+                bool isProfit = profit >= 0;
+                double percentDiff = profit / c.Item.FiatValue * 100;
+                
+                string plusMinus = (isProfit) ? "+" : "-";
+                CurrentAmountLabel.Text = string.Format("{0} ({1}{2:0.0}%)",
+                    AppUtils.GetMoneyString(currentAmount, c.Item.FiatCurrency),
+                    plusMinus,
+                    Math.Abs(percentDiff));
+                CurrentAmountLabel.TextColor = (isProfit) ? Color.ForestGreen : Color.IndianRed;
+            }
+            else
+            {
+                CurrentAmountLabel.Text = "";
+            }
 
             BtcAmountLabel.Text = string.Format("{0} {1:0.0000000} {2}", 
                 (c.Item.AcquireCrypto)? "Bought" : "Sold",

@@ -25,7 +25,7 @@ namespace Hodlr.Pages
 
         public MainPage()
         {
-            Title = "To the Moon!";
+            Title = "To the Moon! 🚀🌙";
 
             ToolbarItem refresh = new ToolbarItem
             {
@@ -160,11 +160,15 @@ namespace Hodlr.Pages
 
         private void ShowUpdateHint()
         {
-            int thisHintNum = 1;
+            double thisHintNum = 2.0;
 
             if(AppUtils.LastShownHint < thisHintNum)
             {
-                DisplayAlert("NEW: Homescreen widget!", "Hodlr has been updated with a homescreen widget. Long press on your launcher's homescreen to add it.", "Sweet!");
+                DisplayAlert("New in Hodlr 2.0", "Hodlr has been updated! Here's what's new:" +
+                    "\n\n\t\u2022 Homescreen widget!\nLong press on your launcher's homescreen to add it." +
+                    "\n\n\t\u2022 Multiple currencies!\nYou can now add Bitcoin, Etherium and Litecoin transactions." +
+                    "\n\n\t\u2022 Bug fixes!", 
+                    "Sweet!");
                 AppUtils.LastShownHint = thisHintNum;
                 AppUtils.SaveCache();
             }

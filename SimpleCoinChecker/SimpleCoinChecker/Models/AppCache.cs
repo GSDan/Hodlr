@@ -11,6 +11,6 @@ namespace Hodlr.Models
         public DateTime LastConvertRefresh { get; set; }
         public string FiatPref { get; set; }
         public int SourcePref { get; set; }
-        public int LastShownHint { get; set; }
+        public double LastShownHint { get; set; }
     }
 }
