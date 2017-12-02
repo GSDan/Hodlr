@@ -21,6 +21,7 @@ namespace Hodlr.Pages
         private ListView listView;
         private double width = 0;
         private double height = 0;
+        private List<Transaction> transactions;
         private ObservableCollection<WrappedCell<Transaction>> WrappedItems = new ObservableCollection<WrappedCell<Transaction>>();
 
         public MainPage()
@@ -234,7 +235,7 @@ namespace Hodlr.Pages
 
         private void LoadTransactions()
         {
-            var transactions = App.DB.GetTransactions().ToList();
+            transactions = App.DB.GetTransactions().ToList();
             if (WrappedItems == null)
             {
                 WrappedItems = new ObservableCollection<WrappedCell<Transaction>>
@@ -315,7 +316,7 @@ namespace Hodlr.Pages
 
         private void UpdateLabels()
         {
-            List<Transaction> transactions = App.DB.GetTransactions().ToList();
+            if (transactions == null) return;
 
             HodlStatus status = HodlStatus.GetCurrent(transactions);
 

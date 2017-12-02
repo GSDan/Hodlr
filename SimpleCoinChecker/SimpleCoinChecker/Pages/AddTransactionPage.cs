@@ -167,7 +167,7 @@ namespace Hodlr.Pages
             if (!Double.TryParse(fiatAmountEntry.Text, out double fiatAmount)) fiatAmount = 0;
             if (!Double.TryParse(cryptoAmountEntry.Text, out double btcAmount)) btcAmount = 0;
 
-            App.DB.AddOrUpdateTransaction(new Transaction
+            App.DB.AddTransaction(new Transaction
             {
                 CryptoAmount = btcAmount,
                 FiatValue = fiatAmount,

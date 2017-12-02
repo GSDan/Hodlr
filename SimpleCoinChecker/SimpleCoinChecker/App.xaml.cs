@@ -1,4 +1,6 @@
-﻿using Xamarin.Forms;
+﻿using Hodlr.Models;
+using System;
+using Xamarin.Forms;
 
 namespace Hodlr
 {
